@@ -449,6 +449,97 @@ function init() {
     composer.render();
   };
 
+  // Hiệu ứng các hạt trái tim rơi xuống
+  (function heartsRainEffect() {
+    const canvas = document.getElementById("hearts-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let W = window.innerWidth,
+      H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+
+    window.addEventListener("resize", () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+    });
+
+    // Hàm vẽ trái tim nhỏ
+    function drawHeart(x, y, size, color, rotate = 0) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotate);
+      ctx.scale(size, size);
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(0, -0.3, -0.5, -0.6, -0.5, -1);
+      ctx.bezierCurveTo(-0.5, -1.4, -0.1, -1.6, 0, -1.2);
+      ctx.bezierCurveTo(0.1, -1.6, 0.5, -1.4, 0.5, -1);
+      ctx.bezierCurveTo(0.5, -0.6, 0, -0.3, 0, 0);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.8;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    function randomColor() {
+      // Các màu hồng/đỏ ngọt ngào
+      const colors = [
+        "#ff69b4",
+        "#ff4f81",
+        "#ff77a9",
+        "#fb3640",
+        "#f06292",
+        "#ffb6c1",
+      ];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    // Tạo các hạt trái tim
+    const hearts = [];
+    const maxHearts = 40;
+
+    function spawnHeart() {
+      const size = Math.random() * 0.9 + 0.6;
+      hearts.push({
+        x: Math.random() * W,
+        y: -24,
+        vy: Math.random() * 1.1 + 1.3,
+        vx: (Math.random() - 0.5) * 0.4,
+        size: size * 16,
+        color: randomColor(),
+        rotate: Math.random() * Math.PI * 2,
+        vr: (Math.random() - 0.5) * 0.03,
+        alpha: Math.random() * 0.4 + 0.6,
+      });
+    }
+
+    function animateHearts() {
+      ctx.clearRect(0, 0, W, H);
+      // Thêm hạt nếu chưa đủ
+      if (hearts.length < maxHearts && Math.random() < 0.5) spawnHeart();
+
+      for (let i = 0; i < hearts.length; i++) {
+        const h = hearts[i];
+        h.x += h.vx;
+        h.y += h.vy;
+        h.rotate += h.vr;
+        drawHeart(h.x, h.y, h.size / 16, h.color, h.rotate);
+
+        if (h.y > H + 40) {
+          hearts.splice(i, 1);
+          i--;
+        }
+      }
+      requestAnimationFrame(animateHearts);
+    }
+    animateHearts();
+  })();
+
   function onWindowResize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
